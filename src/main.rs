@@ -1,58 +1,38 @@
 #![no_std]
 #![no_main]
-#![feature(custom_test_frameworks)]
-#![test_runner(alethia_os::test_runner)]
-#![reexport_test_harness_main = "test_main"]
 
-use alethia_os::println;
-use bootloader::{entry_point, BootInfo};
+
 use core::panic::PanicInfo;
+use alethia_os::uefi::{ImageHandle, SystemTable};
 
-entry_point!(kernel_main);
-fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    use alethia_os::memory::active_level_4_table;
-    use x86_64::VirtAddr;
+// #[cfg(not(test))]
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    // println!("{}", info);
+    loop {}
+}
 
-    println!("Hello world{}", "!");
-    alethia_os::init();
+#[no_mangle]
+pub extern "efiapi" fn efi_main(handle: ImageHandle, system_table: *const SystemTable) {
+    let string =  "helllo world!\n\r";
+    let output_protocol = unsafe { &*(*system_table).output };
 
-    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-    let l4_table = unsafe { active_level_4_table(phys_mem_offset) };
-
-    for (i, entry) in l4_table.iter().enumerate() {
-        use x86_64::structures::paging::PageTable;
-        if !entry.is_unused() {
-            println!("L4 Entry {}: {:?}", i, entry);
-
-            let phys = entry.frame().unwrap().start_address();
-            let virt = phys.as_u64() + boot_info.physical_memory_offset;
-            let ptr = VirtAddr::new(virt).as_mut_ptr();
-            let l3_table: &PageTable = unsafe { &*ptr };
-
-            for (i, entry) in l3_table.iter().enumerate() {
-                if !entry.is_unused() {
-                    println!("  L3 Entry {}: {:?}", i, entry);
-                }
-            }
-        }
+    for character in string.chars() {
+        let mut buffer:[u16;1] = [0];
+        let utf16 = character.encode_utf16(&mut buffer);
+        
+        (output_protocol.output_string)(output_protocol, &utf16[0]);
+        
     }
 
-    #[cfg(test)]
-    test_main();
+    let string_arr = ['h' as u16, 'i' as u16, '!' as u16, '\n' as u16, '\0' as u16];
 
-    println!("It did not crash!");
-    alethia_os::hlt_loop();
-}
+    
+    (output_protocol.output_string)(output_protocol, &string_arr[0]);
+    
 
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
-    alethia_os::hlt_loop();
-}
 
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    alethia_os::test_panic_handler(info)
+    loop {
+        
+    }
 }
