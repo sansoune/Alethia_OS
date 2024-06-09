@@ -5,6 +5,10 @@ use core::fmt::{self, Write};
 
 pub static mut SYSTEM_TABLE: *const SystemTable = 0 as *const SystemTable;
 
+pub fn init(system_table: *const SystemTable) {
+    unsafe{ SYSTEM_TABLE = system_table}
+}
+
 
 #[allow(dead_code)]
 struct Output {
@@ -50,6 +54,7 @@ macro_rules! println {
     };
 }
 
+#[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     let output_protocol = unsafe { &*(*SYSTEM_TABLE).output };
     let mut output = Output {
