@@ -7,6 +7,7 @@ name = "alethia_os"
 version = "0.1.0"
 dependencies = [
  "linked_list_allocator",
+ "log",
  "spin",
  "uefi",
 ]
