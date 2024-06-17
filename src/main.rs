@@ -16,18 +16,35 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[entry]
 fn main(handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
+    // initilization
     init(&mut system_table).expect("Failed ro initilize");
+
+    //setuping the screen 
     system_table
         .stdout()
         .clear()
         .expect("Failed to reset stdout");
     println!("alethia os is booting...");
 
+    //loading kernel
     let mut kernel = load_file(&system_table, cstr16!("kernel.elf"));
+
+    //getting the kernel info
     let mut small_buffer = [0u8; 128];
-    let file_info = kernel.get_info::<FileInfo>(&mut small_buffer).expect("Failed to get file info");
-    let file_size = file_info.file_size();
-    println!("File size: {} bytes", file_size);
+    let kernel_info = kernel.get_info::<FileInfo>(&mut small_buffer).expect("Failed to get file info");
+
+    //getting the size of kernel
+    let kernel_size = kernel_info.file_size();
+    println!("File size: {} bytes", kernel_size);
+
+    //allocating the memroy needed for the kernel
+    let kernel_memory = system_table.boot_services().allocate_pool(table::boot::MemoryType::LOADER_DATA, kernel_size as usize).expect("Failed to allocate memory for kernel");
+
+    let kernel_buffer = unsafe { core::slice::from_raw_parts_mut(kernel_memory, kernel_size as usize) };
+    kernel.read(kernel_buffer).expect("failed to read kernel");
+
+    kernel.close();
+    
     
 
     
@@ -43,7 +60,8 @@ fn main(handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     };
     println!("kernel loaded");
 
-    loop {}
-    // Status::SUCCESS
-}
+    let kernel_entry = unsafe { core::mem::transmute::<_, fn()>(kernel_memory) };
+    kernel_entry();
 
+    Status::SUCCESS
+}
