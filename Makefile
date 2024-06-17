@@ -24,7 +24,8 @@ $(BOOTDISK_IMG): $(KERNEL_BIN)
 	mmd -i $(BOOTDISK_IMG) ::/EFI
 	mmd -i $(BOOTDISK_IMG) ::/EFI/BOOT
     # Copy kernel binary to the disk image dd if=./build/test_test.bin of=$(BOOTDISK_IMG) 
-	$(MTOOL) -i $(BOOTDISK_IMG) $(KERNEL_BIN) ::/EFI/BOOT
+	$(MTOOL) -i $(BOOTDISK_IMG) $(KERNEL_BIN) ::/EFI/BOOT/BOOTX64.efi
+	$(MTOOL) -i $(BOOTDISK_IMG) ./constants/kernel.elf ::/EFI/BOOT/kernel.elf
 	$(MTOOL) -i $(BOOTDISK_IMG) $(STARTUP_FILE) ::
 
 run: $(BOOTDISK_IMG)

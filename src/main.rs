@@ -1,12 +1,14 @@
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
 
-
+use uefi::*;
+use table::{Boot, SystemTable};
+use helpers::init;
 use core::panic::PanicInfo;
-use alethia_os::uefi::{Handle, SystemTable};
-use alethia_os::println;
 
-// #[cfg(not(test))]
+
+
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
@@ -14,14 +16,13 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 
+
 #[no_mangle]
-pub extern "efiapi" fn efi_main(handle: Handle, system_table: *const SystemTable) {
-    alethia_os::console::init(system_table);
+pub extern "efiapi" fn efi_main(handle: Handle, mut system_table: SystemTable<Boot>) {
+    let _ = init(&mut system_table);
+    println!("alethia os is booting...");
 
-    println!("Alethia os!");
+    println!("kernel loaded");
 
-
-    loop {
-        
-    }
+    loop {}
 }

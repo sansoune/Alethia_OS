@@ -1,3 +1,5 @@
 /target
 /tmp
 /build
+/test
+/dummy_kernel
