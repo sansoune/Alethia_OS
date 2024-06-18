@@ -12,3 +12,9 @@ pub struct FrameBuffer {
     pub base_addr: *mut u8,
     pub info: FrameBufferInfo,
 }
+
+#[repr(C)]
+pub enum PixelFormat {
+    Rgb,
+    Bgr,
+}

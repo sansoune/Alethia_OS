@@ -23,7 +23,7 @@ $(BOOTDISK_IMG):
 	$(MTOOL) -i $(BOOTDISK_IMG) $(BOOTLOADER_BIN) ::/EFI/BOOT/BOOTX64.efi
 	$(MTOOL) -i $(BOOTDISK_IMG) $(KERNEL_BIN) ::kernel.elf
 	$(MTOOL) -i $(BOOTDISK_IMG) $(STARTUP_FILE) ::
-	$(MTOOL) -i $(BOOTDISK_IMG) $(FONT_FILE) ::
+	$(MTOOL) -i $(BOOTDISK_IMG) $(FONT_FILE) ::font.psf
 
 run: $(BOOTDISK_IMG)
     # Run QEMU with the bootdisk image

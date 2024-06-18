@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use bootloader::{frame_buffer::{get_frame_buffer, write_to_frame_buffer, FrameBuffer}, load_file::load_file};
+use bootloader::{frame_buffer::{get_frame_buffer, FrameBuffer}, load_file::load_file};
 use proto::media::file::{File, FileInfo};
 use core::panic::PanicInfo;
 use helpers::init;
@@ -46,7 +46,7 @@ fn main(handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     kernel.close();
     
     //loading font
-    let font_file = load_file(&system_table, cstr16!("font.psf"));
+    let mut font_file = load_file(&system_table, cstr16!("font.psf"));
     let mut small_buffer = [0u8; 128];
     let font_info =  font_file.get_info::<FileInfo>(&mut small_buffer).expect("Failed to get font file info");
 
@@ -61,7 +61,7 @@ fn main(handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     
     let  frame_buffer = get_frame_buffer(&system_table).expect("failed to get frame buffer");
 
-    let kernel_entry: extern "C" fn(&FrameBuffer, *const u8) = unsafe { core::mem::transmute::<_, fn()>(kernel_memory) };
+    let kernel_entry: extern "C" fn(&FrameBuffer, *const u8) = unsafe { core::mem::transmute::<_, extern "C" fn(&FrameBuffer, *const u8)>(kernel_memory) };
     kernel_entry(&frame_buffer, font_memory);
 
     Status::SUCCESS
