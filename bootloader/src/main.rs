@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use alethia_os::{frame_buffer::{get_frame_buffer, write_to_frame_buffer}, load_file::load_file};
+use bootloader::{frame_buffer::{get_frame_buffer, write_to_frame_buffer}, load_file::load_file};
 use proto::media::file::{File, FileInfo};
 use core::panic::PanicInfo;
 use helpers::init;
