@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use bootloader::{frame_buffer::{get_frame_buffer, write_to_frame_buffer}, load_file::load_file};
+use bootloader::{frame_buffer::{get_frame_buffer, write_to_frame_buffer, FrameBuffer}, load_file::load_file};
 use proto::media::file::{File, FileInfo};
 use core::panic::PanicInfo;
 use helpers::init;
@@ -45,23 +45,24 @@ fn main(handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
 
     kernel.close();
     
-    
+    //loading font
+    let font_file = load_file(&system_table, cstr16!("font.psf"));
+    let mut small_buffer = [0u8; 128];
+    let font_info =  font_file.get_info::<FileInfo>(&mut small_buffer).expect("Failed to get font file info");
+
+    //allocating memory
+    let font_size = font_info.file_size() as usize;
+    let font_memory = system_table.boot_services().allocate_pool(table::boot::MemoryType::LOADER_DATA, font_size).expect("Failed to allocate memory for font");
+
+    //reading font file into memory
+    let font_memory_slice = unsafe { core::slice::from_raw_parts_mut(font_memory, font_size) };
+    font_file.read(font_memory_slice).expect("Faled to read font file");
 
     
-    if let Some(mut frame_buffer) = get_frame_buffer(&system_table) {
-        // print_text(&mut frame_buffer, 100, 100, "hello from frame buffer", 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 100, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 101, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 102, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 103, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 104, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 105, 100, 0xFF0000);
-        write_to_frame_buffer(&mut frame_buffer, 106, 100, 0xFF0000);
-    };
-    println!("kernel loaded");
+    let  frame_buffer = get_frame_buffer(&system_table).expect("failed to get frame buffer");
 
-    let kernel_entry = unsafe { core::mem::transmute::<_, fn()>(kernel_memory) };
-    kernel_entry();
+    let kernel_entry: extern "C" fn(&FrameBuffer, *const u8) = unsafe { core::mem::transmute::<_, fn()>(kernel_memory) };
+    kernel_entry(&frame_buffer, font_memory);
 
     Status::SUCCESS
 }
