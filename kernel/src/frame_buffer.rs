@@ -8,6 +8,7 @@ pub struct FrameBufferInfo {
     pub stride: usize,
 }
 
+#[repr(C)]
 pub struct FrameBuffer {
     pub base_addr: *mut u8,
     pub info: FrameBufferInfo,

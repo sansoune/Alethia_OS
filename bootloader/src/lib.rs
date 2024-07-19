@@ -1,11 +1,12 @@
 #![no_std]
 
-use frame_buffer::FrameBuffer;
+use frame_buffer::{FrameBuffer, FrameBufferInfo, PixelFormat};
 
 
 
 pub mod frame_buffer;
 pub mod load_file;
+
 
 #[repr(C)]
 pub struct BootInfo {
