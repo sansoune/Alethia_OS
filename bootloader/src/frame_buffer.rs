@@ -1,9 +1,7 @@
-use uefi::{
-    println, proto::console::gop::{self, GraphicsOutput}, table::{
-        boot::{OpenProtocolAttributes, OpenProtocolParams},
-        Boot, SystemTable,
-    }
-};
+use uefi::println;
+use uefi::proto::console::gop::{self, GraphicsOutput};
+use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams};
+use uefi::table::{Boot, SystemTable};
 
 #[repr(C)]
 pub enum PixelFormat {
@@ -61,9 +59,6 @@ pub fn get_frame_buffer(system_table: &SystemTable<Boot>) -> Option<FrameBuffer>
             )
             .ok()
     }?;
-    println!("{}, {}", file!(), line!());
-
-    // let mut gop = boot_services.open_protocol_exclusive::<GraphicsOutput>(gop_handle).ok()?;
 
     let mode_info = gop.current_mode_info();
     let mut frame_buffer = gop.frame_buffer();
@@ -81,8 +76,6 @@ pub fn get_frame_buffer(system_table: &SystemTable<Boot>) -> Option<FrameBuffer>
         bytes_per_pixel: 4,
         stride: mode_info.stride(),
     };
-
-    println!("test test: {:#x}", frame_buffer.as_mut_ptr() as usize);
 
     Some(FrameBuffer {
         base_addr: frame_buffer.as_mut_ptr(),
