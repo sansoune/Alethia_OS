@@ -1,36 +1,8 @@
-use lazy_static::lazy_static;
+use super::FrameBuffer;
+use core::fmt::Write;
 use spin::Mutex;
-use crate::frame_buffer::{FrameBuffer, put_pixel};
-
-#[repr(C)]
-pub struct PSFHeader {
-    pub magic: u16,
-    pub mode: u8,
-    pub char_size: u8,
-}
-
-pub struct Font {
-    pub header: PSFHeader,
-    pub glyphs: &'static [u8],
-}
-
-pub fn draw_char(fb: &FrameBuffer, font: &Font, ch: char, x: usize, y: usize, color: u32) {
-    let glyph_index = ch as usize; // Assuming ASCII input
-    let glyph_size = font.header.char_size as usize;
-    let glyph_offset = glyph_index * glyph_size;
-
-    let glyph = &font.glyphs[glyph_offset..glyph_offset + glyph_size];
-
-    for (row, byte) in glyph.iter().enumerate() {
-        for bit in 0..8 {
-            if (byte & (1 << (7 - bit))) != 0 {
-                let px = x + bit;
-                let py = y + row;
-                put_pixel(fb, px, py, color);
-            }
-        }
-    }
-}
+use lazy_static::lazy_static;
+use crate::drivers::font::Font;
 
 pub struct Writer {
     x_pos: usize,
@@ -69,7 +41,7 @@ impl Writer {
             self.new_line();
         }
 
-        draw_char(self.framebuffer, self.font, c, self.x_pos, self.y_pos, self.color);
+        crate::drivers::font::draw_char(self.framebuffer, self.font, c, self.x_pos, self.y_pos, self.color);
         self.x_pos += 8;
     }
 
@@ -84,7 +56,7 @@ impl Writer {
     }
 }
 
-impl core::fmt::Write for Writer {
+impl Write for Writer {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         self.write_string(s);
         Ok(())
@@ -106,19 +78,6 @@ pub fn init_graphics(fb: &'static FrameBuffer, font: &'static Font) {
         FRAMEBUFFER = fb;
         FONT = font;
     }
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => (
-        $crate::font::_print(format_args!($($arg)*))
-    );
-}
-
-#[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
 #[doc(hidden)]

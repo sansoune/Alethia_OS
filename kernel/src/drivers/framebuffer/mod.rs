@@ -1,3 +1,7 @@
+pub mod writer;
+pub use writer::Writer;
+
+
 #[repr(C)]
 pub struct FrameBufferInfo {
     pub size: usize,

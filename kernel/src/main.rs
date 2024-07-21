@@ -2,7 +2,9 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use kernel::{font::init_graphics, println, BootInfo};
+use kernel::drivers::framebuffer::writer::init_graphics;
+use kernel::println;
+use kernel:: BootInfo;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
