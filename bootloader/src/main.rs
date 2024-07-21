@@ -2,9 +2,11 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use bootloader::{load_file::{load_kernel, open_file}, BootInfo};
+use bootloader::{load_file::{load_font, load_kernel, open_file}, BootInfo};
 use uefi::{prelude::*, println, CStr16};
-use bootloader::frame_buffer::{get_frame_buffer, write_to_frame_buffer};
+use uefi::table::boot::MemoryType;
+use bootloader::frame_buffer::get_frame_buffer;
+
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -32,19 +34,26 @@ fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
     
 
     let fb = get_frame_buffer(&st).expect("couldn't load the frame buffer");
-    write_to_frame_buffer(&fb, 100, 100, 0xFF0000);
-    println!("entry point offset: {}", entry_point_offset);
+
+
+    let mut font_name_buff = [0u16; 128];
+    let font_name = CStr16::from_str_with_buf("font.psf", &mut font_name_buff).unwrap();
+    let mut font_file = open_file(&st, font_name);
+    let font = load_font(&st, &mut font_file);
+
+    let (_runtime, _) = st.exit_boot_services(MemoryType::LOADER_DATA);
 
     let bootinfo = BootInfo {
         framebuffer: fb,
+        font,
     };
 
-    // let (_runtime, _) = st.exit_boot_services(MemoryType::LOADER_DATA);
     
     let entry_point = kernel_add + entry_point_offset;
-
+    
     let kernel_main: extern "sysv64" fn(&BootInfo) -> ! =
-        unsafe { core::mem::transmute(entry_point) };
+    unsafe { core::mem::transmute(entry_point) };
+
     kernel_main(&bootinfo);
 
     Status::SUCCESS

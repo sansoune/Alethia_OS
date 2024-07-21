@@ -1,4 +1,5 @@
 use crate::elf::*;
+use crate::font::{Font, PSF1Header};
 use core::ops::Add;
 use uefi::println;
 use uefi::proto::loaded_image::LoadedImage;
@@ -129,4 +130,30 @@ pub fn load_kernel(st: &SystemTable<Boot>, kernel_file: &mut RegularFile) -> (u6
     println!("entry: {}", e_entry);
 
     (kernel_buffer, e_entry)
+}
+
+pub fn load_font(st: &SystemTable<Boot>, font_file: &mut RegularFile) -> Font {
+    let bs = st.boot_services();
+
+    let mut font_file_buffer = [0u8; 128];
+    let font_info = font_file.get_info::<FileInfo>(&mut font_file_buffer).expect("failed getting file info");
+    let font_file_size = font_info.file_size() as usize;
+    let font_memory = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, (font_file_size + 0xFFF) / 0x1000).expect("couldn't allocate font memory");
+
+    let font_data = unsafe {
+        core::slice::from_raw_parts_mut(font_memory as *mut u8, font_file_size)
+    };
+    font_file.read(font_data).expect("failed to read font file");
+
+    let header = unsafe {
+        &*(font_data.as_ptr() as *const PSF1Header)
+    };
+
+    if header.magic != 0x0436 && header.magic != 0x3642 {
+        panic!("invalid psf1 magic number");
+    }
+
+    let glyphs = &font_data[4..];
+
+    Font::new(*header, glyphs)
 }

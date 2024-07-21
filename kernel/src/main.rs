@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use kernel::BootInfo;
+use kernel::{font::draw_text, BootInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -16,21 +16,11 @@ fn panic(_info: &PanicInfo) -> ! {
 pub extern "C" fn _start(boot_info: &BootInfo) -> ! {
 
     let fb = &boot_info.framebuffer;
+    let font = &boot_info.font;
 
-    for x in 0 .. 200 {
-        for y in 0 .. 200 {
-            let color = 0x00FF00; // Red in RGB format
-
-            let pixel_offset = ((y * fb.info.stride + x) * fb.info.bytes_per_pixel) as isize;
-            let pixel_ptr = unsafe { fb.base_addr.offset(pixel_offset) };
-
-            unsafe {
-                *pixel_ptr = (color >> 16) as u8;
-                *pixel_ptr.offset(1) = ((color >> 8) & 0xFF) as u8;
-                *pixel_ptr.offset(2) = (color & 0xFF) as u8;
-            }
-        }
-    }
+    let text = "hello from kernel!";
+    let color = 0xFFFFFF;
+    draw_text(&fb, &font, text, 10, 10, color);
 
     loop {}
 }
