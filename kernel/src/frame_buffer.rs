@@ -20,6 +20,10 @@ pub enum PixelFormat {
     Bgr,
 }
 
+unsafe impl Send for FrameBuffer {}
+unsafe impl Sync for FrameBuffer {}
+
+
 pub fn put_pixel(framebuffer: &FrameBuffer, x: usize, y: usize, color: u32) {
     let base_addr = framebuffer.base_addr;
     let width = framebuffer.info.width;
@@ -46,9 +50,6 @@ pub fn put_pixel(framebuffer: &FrameBuffer, x: usize, y: usize, color: u32) {
                 *pixel_ptr = (color & 0xFF) as u8;
                 *pixel_ptr.offset(1) = ((color >> 8) & 0xFF) as u8;
                 *pixel_ptr.offset(2) = (color >> 16) as u8;
-            }
-            _ => {
-                // Handle other pixel formats if necessary
             }
         }
     }

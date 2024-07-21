@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use kernel::{font::draw_text, BootInfo};
+use kernel::{font::init_graphics, println, BootInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -13,14 +13,15 @@ fn panic(_info: &PanicInfo) -> ! {
 
 
 #[no_mangle]
-pub extern "C" fn _start(boot_info: &BootInfo) -> ! {
+pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
 
     let fb = &boot_info.framebuffer;
     let font = &boot_info.font;
 
-    let text = "hello from kernel!";
-    let color = 0xFFFFFF;
-    draw_text(&fb, &font, text, 10, 10, color);
+    init_graphics(fb, font);
+    println!("hello from kernel");
+
+    
 
     loop {}
 }
