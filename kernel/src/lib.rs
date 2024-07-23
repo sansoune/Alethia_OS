@@ -1,7 +1,10 @@
 #![no_std]
+#![feature(abi_x86_interrupt)]
 
 pub mod drivers;
+pub mod arch;
 
+use drivers::framebuffer::writer::init_graphics;
 pub use drivers::framebuffer::FrameBuffer;
 pub use drivers::font::Font;
 pub use drivers::framebuffer::Writer;
@@ -23,4 +26,11 @@ macro_rules! print {
 macro_rules! println {
     () => ($crate::print!("\n"));
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+pub fn init() {
+    // init_graphics(fb, font)
+    arch::x86_64::gdt::init();
+    arch::x86_64::idt::init_idt();
+    arch::x86_64::interrupts::init();
 }

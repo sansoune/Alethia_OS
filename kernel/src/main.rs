@@ -8,7 +8,7 @@ use kernel:: BootInfo;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+    println!("paniced: {}", info);
     loop {}
 }
 
@@ -23,8 +23,8 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
 
     init_graphics(fb, font);
     println!("hello from kernel");
-
-    
+    kernel::init();
+    println!("it did not crash");
 
     loop {}
 }
