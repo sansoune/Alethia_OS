@@ -28,4 +28,3 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
 
     loop {}
 }
-

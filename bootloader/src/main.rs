@@ -3,7 +3,7 @@
 
 use core::panic::PanicInfo;
 use bootloader::{load_file::{load_font, load_kernel, open_file}, BootInfo};
-use uefi::{helpers::system_table, prelude::*, println, table::boot::{MemoryDescriptor, MemoryMapIter}, CStr16};
+use uefi::{helpers::system_table, prelude::*, println, table::boot::MemoryMapIter, CStr16};
 use uefi::table::boot::MemoryType;
 use bootloader::frame_buffer::get_frame_buffer;
 

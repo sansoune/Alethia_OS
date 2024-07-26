@@ -1,50 +1,82 @@
-use core::ptr::addr_of;
-use lazy_static::lazy_static;
-use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
-use x86_64::structures::tss::TaskStateSegment;
-use x86_64::VirtAddr;
+use core::arch::asm;
+use core::mem::size_of;
+
+use crate::println;
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
-struct Selector {
-    code_selector: SegmentSelector,
-    tss_selector: SegmentSelector,
+// Structures
+#[derive(Clone, Copy)]
+#[repr(C, packed)]
+struct GdtEntry {
+    limit_low: u16,
+    base_low: u16,
+    base_middle: u8,
+    access: u8,
+    granularity: u8,
+    base_high: u8,
 }
 
-lazy_static! {
-    static ref TSS: TaskStateSegment = {
-        let mut tss = TaskStateSegment::new();
-        tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
-            const STACK_SIZE: usize = 4096 * 5;
-            static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-
-            let stack_start = VirtAddr::from_ptr(unsafe {
-                addr_of!(STACK)
-            });
-            let stack_end = stack_start + STACK_SIZE as u64;
-            stack_end
-        };
-        tss
-    };
+#[repr(C, packed)]
+#[derive(Debug, Clone, Copy)]
+struct GdtDescriptor {
+    size: u16,
+    offset: u64,
 }
 
-lazy_static! {
-    static ref GDT: (GlobalDescriptorTable, Selector) = {
-        let mut gdt = GlobalDescriptorTable::new();
-        let code_selector = gdt.append(Descriptor::kernel_code_segment());
-        let tss_selector = gdt.append(Descriptor::tss_segment(&TSS)); 
-        (gdt, Selector {code_selector, tss_selector} )
-    };
-}
-
-pub fn init() {
-    use x86_64::instructions::tables::load_tss;
-    use x86_64::instructions::segmentation::{CS, Segment};
-
-
-    GDT.0.load();
-    unsafe {
-        CS::set_reg(GDT.1.code_selector);
-        load_tss(GDT.1.tss_selector);
+impl GdtEntry {
+    const fn new(base: u32, limit: u32, access: u8, granularity: u8) -> Self {
+        GdtEntry {
+            limit_low: (limit & 0xFFFF) as u16,
+            base_low: (base & 0xFFFF) as u16,
+            base_middle: ((base >> 16) & 0xFF) as u8,
+            access,
+            granularity: ((limit >> 16) & 0x0F) as u8 | (granularity & 0xF0),
+            base_high: ((base >> 24) & 0xFF) as u8,
+        }
     }
+}
+
+static mut GDT: [GdtEntry; 6] = [
+    GdtEntry::new(0, 0, 0, 0),
+    GdtEntry::new(0, 0xFFFFFFFF, 0x9A, 0xAF),
+    GdtEntry::new(0, 0xFFFFFFFF, 0x92, 0xAF),
+    GdtEntry::new(0, 0, 0, 0),
+    GdtEntry::new(0, 0xFFFFFFFF, 0xFA, 0xAF),
+    GdtEntry::new(0, 0xFFFFFFFF, 0xF2, 0xAF),
+];
+
+static mut GDT_DESCRIPTOR: GdtDescriptor = GdtDescriptor { size: 0, offset: 0 };
+
+unsafe fn load_gdt() {
+    GDT_DESCRIPTOR.size = (size_of::<[GdtEntry; 6]>() - 1) as u16;
+    GDT_DESCRIPTOR.offset = GDT.as_ptr() as u64;
+
+    asm!(
+        "lgdt [{0}]",
+        in(reg) &GDT_DESCRIPTOR,
+        options(readonly, nostack, preserves_flags)
+    );
+
+    // Reload segment registers
+    asm!(
+        "push 0x08",
+        "lea {tmp}, [1f + rip]",
+        "push {tmp}",
+        "retfq",
+        "1:",
+        "mov ax, 0x10",
+        "mov ds, ax",
+        "mov es, ax",
+        "mov fs, ax",
+        "mov gs, ax",
+        "mov ss, ax",
+        tmp = out(reg) _,
+        options(nomem, nostack)
+    );
+}
+
+pub fn init_gdt() {
+    unsafe { load_gdt(); }
+    // println!("called");
 }
