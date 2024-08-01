@@ -3,21 +3,6 @@ use lazy_static::lazy_static;
 use crate::{arch::x86_64::interrupts::pic::send_eoi, print, println};
 // use super::gdt::DOUBLE_FAULT_IST_INDEX;
 
-// #[derive(Debug, Clone, Copy)]
-// #[repr(u8)]
-// pub enum InterruptIndex {
-//     Timer = PIC_1_OFFSET,
-// }
-
-// impl InterruptIndex {
-//     fn as_u8(self) -> u8 {
-//         self as u8
-//     }
-
-//     fn as_usize(self) -> usize {
-//         usize::from(self.as_u8())
-//     }
-// }
 
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
