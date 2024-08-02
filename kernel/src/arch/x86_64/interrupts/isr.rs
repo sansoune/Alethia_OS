@@ -133,21 +133,94 @@ pub extern "C" fn common_isr_handler(stack_frame: &ExceptioStackFrame, int_num: 
     }
 }
 
+#[naked]
+pub extern "C" fn isr_common() {
+    unsafe {
+        asm!(
+            "push rax",
+            "push rbx",
+            "push rcx",
+            "push rdx",
+            "push rsi",
+            "push rdi",
+            "push rbp",
+            "push r8",
+            "push r9",
+            "push r10",
+            "push r11",
+            "push r12",
+            "push r13",
+            "push r14",
+            "push r15",
+
+            "mov rdi, rsp",
+            "mov rsi, [rsp + 15*8]", // Get interrupt number
+            "call common_isr_handler",
+
+            "pop r15",
+            "pop r14",
+            "pop r13",
+            "pop r12",
+            "pop r11",
+            "pop r10",
+            "pop r9",
+            "pop r8",
+            "pop rbp",
+            "pop rdi",
+            "pop rsi",
+            "pop rdx",
+            "pop rcx",
+            "pop rbx",
+            "pop rax",
+
+            "add rsp, 16",
+
+            "iretq",
+            options(noreturn)
+        )
+    }
+}
+
 
 pub fn install_isr() {
     unsafe {
-        for i in 0..32 {
-            if i == 8 || (i >= 10 && i <= 14) || i = 17 || i = 21 {
-                set_idt_gate(i, exception_handler_with_error_code as u64, 0, 0x8E);
-            } else {
-                set_idt_gate(i, exeption_handler as u64, 0, 0x8E);
-            }
-        }
+        set_idt_gate(0, isr0 as u64, 0, 0x8E);
+        set_idt_gate(1, isr1 as u64, 0, 0x8E);
+        set_idt_gate(2, isr2 as u64, 0, 0x8E);
+        set_idt_gate(3, isr3 as u64, 0, 0x8E);
+        set_idt_gate(4, isr4 as u64, 0, 0x8E);
+        set_idt_gate(5, isr5 as u64, 0, 0x8E);
+        set_idt_gate(6, isr6 as u64, 0, 0x8E);
+        set_idt_gate(7, isr7 as u64, 0, 0x8E);
+        set_idt_gate(8, isr8 as u64, 0, 0x8E);
+        set_idt_gate(9, isr9 as u64, 0, 0x8E);
+        set_idt_gate(10, isr10 as u64, 0, 0x8E);
+        set_idt_gate(11, isr11 as u64, 0, 0x8E);
+        set_idt_gate(12, isr12 as u64, 0, 0x8E);
+        set_idt_gate(13, isr13 as u64, 0, 0x8E);
+        set_idt_gate(14, isr14 as u64, 0, 0x8E);
+        set_idt_gate(15, isr15 as u64, 0, 0x8E);
+        set_idt_gate(16, isr16 as u64, 0, 0x8E);
+        set_idt_gate(17, isr17 as u64, 0, 0x8E);
+        set_idt_gate(18, isr18 as u64, 0, 0x8E);
+        set_idt_gate(19, isr19 as u64, 0, 0x8E);
+        set_idt_gate(20, isr20 as u64, 0, 0x8E);
+        set_idt_gate(21, isr21 as u64, 0, 0x8E);
+        set_idt_gate(22, isr22 as u64, 0, 0x8E);
+        set_idt_gate(23, isr23 as u64, 0, 0x8E);
+        set_idt_gate(24, isr24 as u64, 0, 0x8E);
+        set_idt_gate(25, isr25 as u64, 0, 0x8E);
+        set_idt_gate(26, isr26 as u64, 0, 0x8E);
+        set_idt_gate(27, isr27 as u64, 0, 0x8E);
+        set_idt_gate(28, isr28 as u64, 0, 0x8E);
+        set_idt_gate(29, isr29 as u64, 0, 0x8E);
+        set_idt_gate(30, isr30 as u64, 0, 0x8E);
+        set_idt_gate(31, isr31 as u64, 0, 0x8E);
     }
 }
 
 pub fn register_isr(index: usize, handler: extern "x86-interrupt" fn()) {
     unsafe {
-        set_idt_gate(index, handler as u64, 0, );
+        set_idt_gate(index, handler as u64, 0, 0x8E);
     }
 }
