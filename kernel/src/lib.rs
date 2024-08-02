@@ -35,4 +35,5 @@ pub fn init() {
     arch::x86_64::gdt::init_gdt();
     arch::x86_64::idt::init_idt();
     arch::x86_64::interrupts::init();
+    drivers::timer::init();
 }

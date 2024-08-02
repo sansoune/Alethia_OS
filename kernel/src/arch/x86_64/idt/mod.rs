@@ -38,7 +38,7 @@ static mut IDT_PTR: IdtPtr = IdtPtr {
     base: 0,
 };
 
-unsafe fn set_idt_gate(index: usize, handler: extern "x86-interrupt" fn()) {
+pub unsafe fn set_idt_gate(index: usize, handler: extern "x86-interrupt" fn()) {
     let addr = handler as u64;
     IDT[index] = IdtEntry {
         offset_low: addr as u16,
@@ -52,8 +52,6 @@ unsafe fn set_idt_gate(index: usize, handler: extern "x86-interrupt" fn()) {
 }
 
 unsafe fn setup_idt() {
-
-    set_idt_gate(32, timer_interrupt_handler);
 
     IDT_PTR.limit = (size_of::<[IdtEntry; 256]>() - 1) as u16;
     IDT_PTR.base = IDT.as_ptr() as u64;
@@ -69,8 +67,3 @@ pub fn init_idt() {
     unsafe { setup_idt(); }
 }
 
-extern "x86-interrupt" fn timer_interrupt_handler()
-{
-    print!(".");
-    send_eoi(0);
-}
