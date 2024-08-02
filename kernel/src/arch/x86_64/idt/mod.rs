@@ -12,6 +12,7 @@ lazy_static! {
             idt.double_fault.set_handler_fn(double_fault_handler).set_stack_index(0);   
         }
         idt[32].set_handler_fn(timer_interrupt_handler);
+        idt[33].set_handler_fn(keyboard_interrupt_handler);
         idt
     };
 }
@@ -33,5 +34,13 @@ extern "x86-interrupt" fn timer_interrupt_handler(
 {
     print!(".");
     send_eoi();
-    // unsafe { PICS.lock().notify_end_of_interrupt(32) };
+}
+
+extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
+    use x86_64::instructions::port::Port;
+
+    let mut port = Port::new(0x60);
+    let scancode: u8 = unsafe { port.read() };
+    print!("{}", scancode);
+    send_eoi();
 }

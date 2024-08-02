@@ -64,7 +64,7 @@ impl Writer {
             core::ptr::write_bytes(
             (self.framebuffer.base_addr as *mut u8).add(last_line_offset),
             0,
-            bytes_per_line,
+            bytes_per_line * line_height,
             );
 
         }

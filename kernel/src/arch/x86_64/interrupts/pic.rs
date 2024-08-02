@@ -1,41 +1,3 @@
-// use lazy_static::lazy_static;
-// use pic8259::ChainedPics;
-// use spin;
-
-// pub const PIC_1_OFFSET: u8 = 32;
-// pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
-
-
-
-// lazy_static! {
-//     pub static ref PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(unsafe {
-//         ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET)
-//     });
-// }
-
-// pub fn init_pic() {
-//     unsafe {
-//         PICS.lock().initialize();
-//     }
-// }
-
-// pub fn unmask_irq(irq: u8) {
-//     unsafe {
-//         let mut pics = PICS.lock();
-//         let [mask1, mask2] = pics.read_masks();
-
-//         if irq < 8 {
-//             // IRQ belongs to PIC1
-//             let irq_mask = !(1 << irq);
-//             pics.write_masks(mask1 & irq_mask, mask2);
-//         } else {
-//             // IRQ belongs to PIC2
-//             let irq_mask = !(1 << (irq - 8)); // Adjust shift for PIC2
-//             pics.write_masks(mask1, mask2 & irq_mask);
-//         }
-//     }
-// }
-
 use crate::{inb, outb, io_wait};
 
 const PIC1: u16 = 0x20;
@@ -80,10 +42,21 @@ pub unsafe fn init_pic() {
     outb(PIC2_DATA, mask2);
 }
 
-pub unsafe fn unmask_timer_interrupt() {
-    let mut mask = inb(PIC1_DATA);
-    mask &= !(1 << 0);  // Clear bit 0 to unmask IRQ0 (timer)
-    outb(PIC1_DATA, mask);
+pub unsafe fn unmask_irq(irq: u8) {
+    if irq > 15 {
+        // Invalid IRQ number
+        return;
+    }
+
+    let (port, irq) = if irq < 8 {
+        (PIC1_DATA, irq)
+    } else {
+        (PIC2_DATA, irq - 8)
+    };
+
+    let mut mask = inb(port);
+    mask &= !(1 << irq);
+    outb(port, mask);
 }
 
 pub fn send_eoi() {
