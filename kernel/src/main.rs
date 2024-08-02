@@ -4,13 +4,14 @@
 use core::panic::PanicInfo;
 use kernel::drivers::framebuffer::writer::init_graphics;
 use kernel::drivers::framebuffer::writer::WRITER;
+use kernel::hlt;
 use kernel::println;
 use kernel:: BootInfo;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("paniced: {}", info);
-    loop {}
+    hlt();
 }
 
 
@@ -27,5 +28,5 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
     kernel::init();
     println!("it did not crash");
 
-    loop {}
+    hlt();
 }

@@ -10,6 +10,7 @@ pub use drivers::framebuffer::FrameBuffer;
 pub use drivers::font::Font;
 pub use drivers::framebuffer::Writer;
 pub use arch::x86_64::utils::io::*;
+pub use arch::x86_64::utils::hlt::hlt;
 
 #[repr(C)]
 pub struct BootInfo {

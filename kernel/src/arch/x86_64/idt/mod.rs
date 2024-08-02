@@ -2,7 +2,6 @@ use crate::{arch::x86_64::interrupts::pic::send_eoi, print, println};
 use core::mem::size_of;
 use core::arch::asm;
 
-use x86_64::structures::idt::HandlerFunc;
 
 #[derive(Clone, Copy)]
 #[repr(C, packed)]
@@ -38,15 +37,14 @@ static mut IDT_PTR: IdtPtr = IdtPtr {
     base: 0,
 };
 
-pub unsafe fn set_idt_gate(index: usize, handler: extern "x86-interrupt" fn()) {
-    let addr = handler as u64;
+pub unsafe fn set_idt_gate(index: usize, handler: u64, ist: u8, type_attr: u8) {
     IDT[index] = IdtEntry {
-        offset_low: addr as u16,
+        offset_low: handler as u16,
         segment_selector: 0x08, // Code segment selector
-        ist: 0,
-        type_attributes: 0x8E, // Present, DPL=0, Interrupt Gate
-        offset_mid: (addr >> 16) as u16,
-        offset_high: (addr >> 32) as u32,
+        ist,
+        type_attributes: type_attr,
+        offset_mid: (handler >> 16) as u16,
+        offset_high: (handler >> 32) as u32,
         reserved: 0,
     }
 }
