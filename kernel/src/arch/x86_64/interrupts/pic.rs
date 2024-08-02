@@ -59,8 +59,11 @@ pub unsafe fn unmask_irq(irq: u8) {
     outb(port, mask);
 }
 
-pub fn send_eoi() {
+pub fn send_eoi(irq: u8) {
     unsafe {
+        if irq >= 8 {
+            outb(PIC2_COMMAND, 0x20);
+        }
         outb(PIC1_COMMAND, 0x20);
     }
 }

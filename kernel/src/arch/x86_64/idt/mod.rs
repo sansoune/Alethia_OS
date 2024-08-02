@@ -1,46 +1,76 @@
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
-use lazy_static::lazy_static;
 use crate::{arch::x86_64::interrupts::pic::send_eoi, print, println};
-// use super::gdt::DOUBLE_FAULT_IST_INDEX;
+use core::mem::size_of;
+use core::arch::asm;
 
+use x86_64::structures::idt::HandlerFunc;
 
-lazy_static! {
-    static ref IDT: InterruptDescriptorTable = {
-        let mut idt = InterruptDescriptorTable::new();
-        idt.breakpoint.set_handler_fn(breakpoint_handler);
-        unsafe {
-            idt.double_fault.set_handler_fn(double_fault_handler).set_stack_index(0);   
-        }
-        idt[32].set_handler_fn(timer_interrupt_handler);
-        idt[33].set_handler_fn(keyboard_interrupt_handler);
-        idt
-    };
+#[derive(Clone, Copy)]
+#[repr(C, packed)]
+struct IdtEntry {
+    offset_low: u16,
+    segment_selector: u16,
+    ist: u8,
+    type_attributes: u8,
+    offset_mid: u16,
+    offset_high: u32,
+    reserved: u32,
+}
+
+#[derive(Clone, Copy)]
+#[repr(C, packed)]
+struct IdtPtr {
+    limit: u16,
+    base: u64,
+}
+
+static mut IDT: [IdtEntry; 256] = [IdtEntry {
+    offset_low: 0,
+    segment_selector: 0,
+    ist: 0,
+    type_attributes: 0,
+    offset_mid: 0,
+    offset_high: 0,
+    reserved: 0,
+}; 256];
+
+static mut IDT_PTR: IdtPtr = IdtPtr {
+    limit: 0,
+    base: 0,
+};
+
+unsafe fn set_idt_gate(index: usize, handler: extern "x86-interrupt" fn()) {
+    let addr = handler as u64;
+    IDT[index] = IdtEntry {
+        offset_low: addr as u16,
+        segment_selector: 0x08, // Code segment selector
+        ist: 0,
+        type_attributes: 0x8E, // Present, DPL=0, Interrupt Gate
+        offset_mid: (addr >> 16) as u16,
+        offset_high: (addr >> 32) as u32,
+        reserved: 0,
+    }
+}
+
+unsafe fn setup_idt() {
+
+    set_idt_gate(32, timer_interrupt_handler);
+
+    IDT_PTR.limit = (size_of::<[IdtEntry; 256]>() - 1) as u16;
+    IDT_PTR.base = IDT.as_ptr() as u64;
+
+    asm!(
+        "lidt [{0}]",
+        in(reg) &IDT_PTR,
+        options(readonly, nostack, preserves_flags)
+    );
 }
 
 pub fn init_idt() {
-    IDT.load();
+    unsafe { setup_idt(); }
 }
 
-extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
-    println!("EXEPTION: BREAKPOINT\n {:#?}", stack_frame);
-}
-
-extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, _error_code: u64) -> ! {
-    panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
-}
-
-extern "x86-interrupt" fn timer_interrupt_handler(
-    _stack_frame: InterruptStackFrame)
+extern "x86-interrupt" fn timer_interrupt_handler()
 {
     print!(".");
-    send_eoi();
-}
-
-extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    use x86_64::instructions::port::Port;
-
-    let mut port = Port::new(0x60);
-    let scancode: u8 = unsafe { port.read() };
-    print!("{}", scancode);
-    send_eoi();
+    send_eoi(0);
 }
