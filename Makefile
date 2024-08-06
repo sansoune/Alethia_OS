@@ -29,6 +29,10 @@ run: $(BOOTDISK_IMG)
     # Run QEMU with the bootdisk image
 	$(QEMU) -bios /usr/share/ovmf/OVMF.fd -net none -drive file=$(BOOTDISK_IMG)
 
+run_gdb: $(BOOTDISK_IMG)
+    # Run QEMU with the bootdisk image
+	$(QEMU) -bios /usr/share/ovmf/OVMF.fd -net none -drive file=$(BOOTDISK_IMG) -S -s
+
 clean:
     # Remove generated files
 	rm -f $(BOOTLOADER_OBJ) $(BOOTDISK_IMG)

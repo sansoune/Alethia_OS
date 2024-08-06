@@ -1,6 +1,7 @@
 use crate::{arch::x86_64::interrupts::pic::send_eoi, print, println};
 use core::mem::size_of;
 use core::arch::asm;
+use core::ptr::addr_of;
 
 
 #[derive(Clone, Copy)]
@@ -39,11 +40,11 @@ static mut IDT_PTR: IdtPtr = IdtPtr {
 
 pub unsafe fn set_idt_gate(index: usize, handler: u64, ist: u8, type_attr: u8) {
     IDT[index] = IdtEntry {
-        offset_low: handler as u16,
+        offset_low: (handler & 0xFFFF) as u16,
         segment_selector: 0x08, // Code segment selector
         ist,
         type_attributes: type_attr,
-        offset_mid: (handler >> 16) as u16,
+        offset_mid: ((handler >> 16) & 0xFFFF) as u16,
         offset_high: (handler >> 32) as u32,
         reserved: 0,
     }
@@ -56,7 +57,7 @@ unsafe fn setup_idt() {
 
     asm!(
         "lidt [{0}]",
-        in(reg) &IDT_PTR,
+        in(reg) addr_of!(IDT_PTR),
         options(readonly, nostack, preserves_flags)
     );
 }

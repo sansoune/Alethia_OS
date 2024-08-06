@@ -1,5 +1,6 @@
 use core::arch::asm;
 use core::mem::size_of;
+use core::ptr::addr_of;
 
 use crate::println;
 
@@ -54,7 +55,7 @@ unsafe fn load_gdt() {
 
     asm!(
         "lgdt [{0}]",
-        in(reg) &GDT_DESCRIPTOR,
+        in(reg) addr_of!(GDT_DESCRIPTOR),
         options(readonly, nostack, preserves_flags)
     );
 

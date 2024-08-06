@@ -26,6 +26,19 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
     init_graphics(fb, font);
     println!("hello from kernel");
     kernel::init();
+    // x86_64::instructions::interrupts::int3();
+
+    //triger a page fault
+    // unsafe {
+    //     *(0x11deadbeef as *mut u8) = 42;
+    // };
+
+    // fn stack_overflow() {
+    //     stack_overflow(); // for each recursion, the return address is pushed
+    // }
+
+    // // trigger a stack overflow
+    // stack_overflow();
     println!("it did not crash");
 
     hlt();

@@ -1,5 +1,9 @@
-pub fn hlt() {
-    unsafe {
-        asm!("hlt", options(nomem, nostack, preserves_flags));
+use core::arch::asm;
+
+pub fn hlt() -> ! {
+    loop {
+        unsafe {
+            asm!("hlt", options(nomem, nostack, preserves_flags));
+        }
     }
 }

@@ -1,5 +1,6 @@
 pub mod pic;
 pub mod isr;
+pub mod irq;
 
 pub fn init() {
     unsafe {
