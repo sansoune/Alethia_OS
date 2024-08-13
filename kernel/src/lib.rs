@@ -7,7 +7,6 @@
 pub mod drivers;
 pub mod arch;
 
-use drivers::framebuffer::writer::init_graphics;
 pub use drivers::framebuffer::FrameBuffer;
 pub use drivers::font::Font;
 pub use drivers::framebuffer::Writer;

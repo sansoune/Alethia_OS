@@ -1,4 +1,3 @@
-use crate::{arch::x86_64::interrupts::pic::send_eoi, print, println};
 use core::mem::size_of;
 use core::arch::asm;
 use core::ptr::addr_of;

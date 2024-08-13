@@ -3,7 +3,6 @@
 
 use core::panic::PanicInfo;
 use kernel::drivers::framebuffer::writer::init_graphics;
-use kernel::drivers::framebuffer::writer::WRITER;
 use kernel::hlt;
 use kernel::println;
 use kernel::serial_println;

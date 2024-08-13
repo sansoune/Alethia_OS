@@ -1,5 +1,5 @@
 use super::FrameBuffer;
-use core::{fmt::Write, slice};
+use core::fmt::Write;
 use spin::Mutex;
 use lazy_static::lazy_static;
 use crate::drivers::font::Font;
@@ -28,7 +28,6 @@ impl Writer {
     }
 
     pub fn clear_screen(&mut self) {
-        let bytes_per_pixel = self.framebuffer.info.bytes_per_pixel;
         let total_bytes = self.framebuffer.info.stride * self.framebuffer.info.height;
 
         unsafe {
@@ -44,7 +43,6 @@ impl Writer {
     fn scroll(&mut self) {
         let line_height = self.font.header.char_size as usize;
         let bytes_per_pixel = self.framebuffer.info.bytes_per_pixel;
-        let stride = self.framebuffer.info.stride;
         let fb_height = self.framebuffer.info.height;
         let fb_width = self.framebuffer.info.width;
 

@@ -2,8 +2,6 @@ use core::arch::asm;
 use core::mem::size_of;
 use core::ptr::addr_of;
 
-use crate::println;
-
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
 // Structures
