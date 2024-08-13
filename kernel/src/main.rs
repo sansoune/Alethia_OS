@@ -6,6 +6,7 @@ use kernel::drivers::framebuffer::writer::init_graphics;
 use kernel::drivers::framebuffer::writer::WRITER;
 use kernel::hlt;
 use kernel::println;
+use kernel::serial_println;
 use kernel:: BootInfo;
 
 #[panic_handler]
@@ -25,6 +26,7 @@ pub extern "C" fn _start(boot_info: &'static BootInfo) -> ! {
 
     init_graphics(fb, font);
     println!("hello from kernel");
+    serial_println!("the os booted");
     kernel::init();
     // x86_64::instructions::interrupts::int3();
 

@@ -27,7 +27,7 @@ $(BOOTDISK_IMG):
 
 run: $(BOOTDISK_IMG)
     # Run QEMU with the bootdisk image
-	$(QEMU) -bios /usr/share/ovmf/OVMF.fd -net none -drive file=$(BOOTDISK_IMG)
+	$(QEMU) -bios /usr/share/ovmf/OVMF.fd -net none -drive file=$(BOOTDISK_IMG) -serial stdio
 
 run_gdb: $(BOOTDISK_IMG)
     # Run QEMU with the bootdisk image
