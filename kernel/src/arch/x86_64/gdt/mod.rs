@@ -60,17 +60,20 @@ unsafe fn load_gdt() {
     // Reload segment registers
     asm!(
         "push 0x08",
-        "lea {tmp}, [1f + rip]",
+        "lea {tmp}, [2f + rip]",
         "push {tmp}",
         "retfq",
-        "1:",
+        tmp = out(reg) _,
+        options(nomem, nostack)
+    );
+    asm!(
+        "2:",
         "mov ax, 0x10",
         "mov ds, ax",
         "mov es, ax",
         "mov fs, ax",
         "mov gs, ax",
         "mov ss, ax",
-        tmp = out(reg) _,
         options(nomem, nostack)
     );
 }

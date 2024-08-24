@@ -1,11 +1,11 @@
 #![no_std]
 #![feature(abi_x86_interrupt)]
-#![feature(asm_const)]
 #![feature(naked_functions)]
 
 
 pub mod drivers;
 pub mod arch;
+pub mod memory;
 
 pub use drivers::framebuffer::FrameBuffer;
 pub use drivers::font::Font;
