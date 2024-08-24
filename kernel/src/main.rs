@@ -6,7 +6,8 @@ use kernel::drivers::framebuffer::writer::init_graphics;
 use kernel::hlt;
 use kernel::println;
 use kernel::serial_println;
-use kernel:: BootInfo;
+use bootloader::BootInfo;
+
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

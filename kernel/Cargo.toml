@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bootloader = { path = "../bootloader" }
 lazy_static = {version = "1.5.0", features = ["spin_no_std"]}
 pic8259 = "0.11.0"
 spin = "0.9.8"

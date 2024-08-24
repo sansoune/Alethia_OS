@@ -1,16 +1,6 @@
-use crate::drivers::framebuffer::{put_pixel, FrameBuffer};
-
-#[repr(C)]
-pub struct PSFHeader {
-    pub magic: u16,
-    pub mode: u8,
-    pub char_size: u8,
-}
-
-pub struct Font {
-    pub header: PSFHeader,
-    pub glyphs: &'static [u8],
-}
+use crate::drivers::framebuffer::put_pixel;
+use bootloader::font::Font;
+use bootloader::frame_buffer::FrameBuffer;
 
 pub fn draw_char(fb: &FrameBuffer, font: &Font, ch: char, x: usize, y: usize, color: u32) {
     let glyph_index = ch as usize; // Assuming ASCII input

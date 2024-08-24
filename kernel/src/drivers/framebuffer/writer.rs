@@ -1,8 +1,8 @@
-use super::FrameBuffer;
+use bootloader::frame_buffer::FrameBuffer;
 use core::fmt::Write;
 use spin::Mutex;
 use lazy_static::lazy_static;
-use crate::drivers::font::Font;
+use bootloader::font::Font;
 
 pub struct Writer {
     x_pos: usize,

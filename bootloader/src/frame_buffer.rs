@@ -25,6 +25,9 @@ pub struct FrameBuffer {
     pub info: FrameBufferInfo,
 }
 
+unsafe impl Send for FrameBuffer {}
+unsafe impl Sync for FrameBuffer {}
+
 impl FrameBuffer {
     pub fn new(base_addr: *mut u8, size: usize, width: usize, height: usize, pixel_format: PixelFormat, bytes_per_pixel: usize, stride: usize) -> Self {
         FrameBuffer {
